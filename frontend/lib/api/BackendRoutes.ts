@@ -146,7 +146,7 @@ export const BackendRoutes = {
   },
 
   realtime: {
-    websocket: (token: string) => `ws://localhost:9000/ws/layon/?token=${token}`,
+    websocket: (token: string) => `ws://localhost:9000/ws/melodii/?token=${token}`,
   },
 
   me: `${API_VERSION}/users/me/`,

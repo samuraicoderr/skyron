@@ -1,7 +1,7 @@
 import FrontendRoutes from "../FrontendRoutes";
 
-export const AUTH_PRESENCE_COOKIE = "layon_auth_present";
-export const AUTH_REDIRECT_MESSAGE_KEY = "layon_auth_redirect_message";
+export const AUTH_PRESENCE_COOKIE = "melodii_auth_present";
+export const AUTH_REDIRECT_MESSAGE_KEY = "melodii_auth_redirect_message";
 
 export function isSafeRelativePath(path: string | null | undefined): path is string {
   if (!path) {

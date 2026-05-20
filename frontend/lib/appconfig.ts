@@ -15,25 +15,25 @@ for (let i=0; i<8; i++) {
 }
 
 const appConfig = {
-  appName: 'Layon',
+  appName: 'melodii',
   tagline: 'Ghostwring because why not.',
 
   logos: {
     // I know green maps to purple, leave it like that.
-    main: "/app-logos/layon-logo-main1.png",
-    green: '/app-logos/layon-logo-purple.png',
-    dark: '/app-logos/layon-logo-black.png',
-    white: '/app-logos/layon-logo-white.png',
-    grey: '/app-logos/layon-logo-grey.png',
-    green_svg: '/app-logos/layon-logo-purple.svg',
-    dark_svg: '/app-logos/layon-logo-black.svg',
-    white_svg: '/app-logos/layon-logo-white.svg',
-    grey_svg: '/app-logos/layon-logo-grey.svg',
+    main: "/app-logos/melodii-logo-main1.png",
+    green: '/app-logos/melodii-logo-purple.png',
+    dark: '/app-logos/melodii-logo-black.png',
+    white: '/app-logos/melodii-logo-white.png',
+    grey: '/app-logos/melodii-logo-grey.png',
+    green_svg: '/app-logos/melodii-logo-purple.svg',
+    dark_svg: '/app-logos/melodii-logo-black.svg',
+    white_svg: '/app-logos/melodii-logo-white.svg',
+    grey_svg: '/app-logos/melodii-logo-grey.svg',
     favicons: {
-      main: '/app-logos/favicons/layon-favicon-main.ico',
-      green: '/app-logos/favicons/layon-logo-purple.ico',
-      dark: '/app-logos/favicons/layon-logo-black.ico',
-      white: '/app-logos/favicons/layon-logo-white.ico',
+      main: '/app-logos/favicons/melodii-favicon-main.ico',
+      green: '/app-logos/favicons/melodii-logo-purple.ico',
+      dark: '/app-logos/favicons/melodii-logo-black.ico',
+      white: '/app-logos/favicons/melodii-logo-white.ico',
     },
   },
 

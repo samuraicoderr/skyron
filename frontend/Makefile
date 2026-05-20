@@ -1,12 +1,18 @@
-.PHONY: runserver frontend backend
+.DEFAULT_GOAL := run
 
-runserver: frontend backend
+install:
+	npm install
 
-frontend:
-	$(MAKE) -C ./frontend runserver
 
-backend:
-	$(MAKE) -C ./backend runserver
+build:
+	npm run build
+
+
+runserver:
+	npm run dev
+
+
+run: runserver
 
 diff-staged:
 	git diff --cached > ./a.diff
@@ -34,4 +40,3 @@ wiff+:
 	git diff --cached > ./a.diff
 	windsurf ./a.diff
 	rm ./a.diff
-
