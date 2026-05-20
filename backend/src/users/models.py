@@ -342,13 +342,6 @@ class User(OnboardingMixin, UserAuthMixin, AbstractUser):
 
     institution = models.CharField(max_length=255, blank=True, default="")
     date_of_birth = models.DateField(blank=True, null=True)
-    active_organization = models.ForeignKey(
-        "organizations.Organization",
-        on_delete=models.SET_NULL,
-        related_name="active_users",
-        null=True,
-        blank=True,
-    )
 
     is_email_verified = models.BooleanField(default=False, db_index=True)
     is_phone_number_verified = models.BooleanField(default=False)
