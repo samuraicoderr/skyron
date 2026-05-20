@@ -77,7 +77,6 @@ class UserSerializer(serializers.ModelSerializer):
             "picture_url",
             "phone_number",
             "institution",
-            "active_organization",
             "onboarding_status",
             "onboarding_flow",
             "is_email_verified",
