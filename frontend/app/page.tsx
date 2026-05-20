@@ -1,8 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import GenreAIService from "@/lib/api/services/GenreAI.Service";
 import type { GenreClassificationResponse } from "@/lib/api/types";
+import { apiClient } from "@/lib/api/ApiClient";
+import {
+  isTauri,
+  resolveBackendUrl,
+  stopBackend,
+  waitForBackend,
+} from "@/lib/tauri/backend";
 
 const MAX_FILE_MB = 30;
 const ALLOWED_EXTENSIONS = ["mp3", "wav", "ogg", "flac", "m4a"];
@@ -34,6 +41,9 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<GenreClassificationResponse | null>(null);
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [backendReady, setBackendReady] = useState(false);
+  const [backendError, setBackendError] = useState<string | null>(null);
 
   const selectedModelLabel = useMemo(() => {
     return MODEL_OPTIONS.find((model) => model.id === selectedModel)?.label ?? "";
@@ -70,6 +80,10 @@ export default function Home() {
   };
 
   const handleSubmit = async () => {
+    if (isDesktop && !backendReady) {
+      setError("Backend is still starting. Please wait a moment.");
+      return;
+    }
     if (!file) {
       setError("Please select an audio file first.");
       return;
@@ -94,8 +108,90 @@ export default function Home() {
     setError(null);
   };
 
+  const handleWindowAction = async (action: "minimize" | "maximize" | "close") => {
+    if (!isTauri()) {
+      return;
+    }
+    const { getCurrentWindow } = await import("@tauri-apps/api/window");
+    const currentWindow = getCurrentWindow();
+    if (action === "minimize") {
+      await currentWindow.minimize();
+      return;
+    }
+    if (action === "maximize") {
+      await currentWindow.toggleMaximize();
+      return;
+    }
+    await currentWindow.close();
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    const bootstrapBackend = async () => {
+      try {
+        const backendUrl = await resolveBackendUrl();
+        apiClient.setBaseURL(backendUrl);
+        await waitForBackend(backendUrl);
+        if (mounted) {
+          setBackendReady(true);
+        }
+      } catch (err: any) {
+        if (mounted) {
+          setBackendError(err?.message ?? "Backend failed to start");
+        }
+      }
+    };
+
+    const desktop = isTauri();
+    setIsDesktop(desktop);
+    if (!desktop) {
+      setBackendReady(true);
+      return () => {
+        mounted = false;
+      };
+    }
+
+    bootstrapBackend();
+
+    return () => {
+      mounted = false;
+      stopBackend();
+    };
+  }, []);
+
   return (
     <div className="flex flex-1 flex-col items-center px-6 py-12 md:px-12">
+      {isDesktop && (
+        <div
+          className="titlebar flex w-full max-w-5xl items-center justify-between rounded-full border border-white/10 bg-black/30 px-4 py-2"
+          data-tauri-drag-region
+        >
+          <div className="text-xs uppercase tracking-[0.35em] text-[var(--muted)]">
+            Melodii Desktop
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => handleWindowAction("minimize")}
+              className="titlebar-btn"
+              aria-label="Minimize"
+            />
+            <button
+              type="button"
+              onClick={() => handleWindowAction("maximize")}
+              className="titlebar-btn"
+              aria-label="Maximize"
+            />
+            <button
+              type="button"
+              onClick={() => handleWindowAction("close")}
+              className="titlebar-btn titlebar-btn--close"
+              aria-label="Close"
+            />
+          </div>
+        </div>
+      )}
+
       <div className="w-full max-w-5xl space-y-8 page-intro">
         <header className="flex flex-col gap-4">
           <p className="uppercase tracking-[0.35em] text-xs text-[var(--muted)]">
@@ -206,14 +302,18 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  disabled={loading}
+                  disabled={loading || !backendReady}
                   className={`flex-1 rounded-full px-6 py-3 text-sm font-semibold text-black transition ${
                     loading
                       ? "bg-[var(--accent)]/60 cursor-wait"
                       : "bg-[var(--accent)] hover:bg-[var(--accent-strong)]"
                   }`}
                 >
-                  {loading ? "Analyzing..." : "Classify Genre"}
+                  {loading
+                    ? "Analyzing..."
+                    : backendReady
+                      ? "Classify Genre"
+                      : "Starting backend..."}
                 </button>
                 <button
                   type="button"
@@ -224,8 +324,14 @@ export default function Home() {
                 </button>
               </div>
 
-              {loading && (
+              {(loading || (isDesktop && !backendReady)) && (
                 <div className="loading-bar h-2 w-full rounded-full bg-white/10" />
+              )}
+
+              {backendError && (
+                <div className="rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-[var(--danger)]">
+                  {backendError}
+                </div>
               )}
             </div>
           </div>

@@ -1,147 +1,129 @@
 
-# Music Genre Classification System
+# Melodii Desktop
 
-A full-stack web application that classifies music genres using Machine Learning and Deep Learning models. Built as a Final Year Project (SEN/20/5107).
+Melodii is a production-ready desktop app for music genre classification. It packages the existing Next.js 14 frontend and Django DRF backend into a single native installer using Tauri v2 and a PyInstaller sidecar. No manual ffmpeg installation is required.
 
-![Project Banner](https://via.placeholder.com/800x300/1a1a2e/0ea5e9?text=Music+Genre+Classifier)
+## Overview
 
-## ✨ Overview
+- Upload audio files and receive top-5 genre predictions.
+- Hugging Face model `dima806/music_genres_classification` is active in V1.
+- Desktop-friendly UI with native window controls and a startup splash state.
 
-This platform allows users to upload an audio file and instantly receive accurate genre predictions. It implements both traditional data mining techniques and modern deep learning approaches for music genre classification — as proposed in the project documentation.
+## Architecture (Sidecar Pattern)
 
-**V1** currently uses a strong pre-trained Hugging Face model, with full support for custom models planned in **V2**.
+- **Frontend**: Next.js 14 (App Router) built to static assets.
+- **Backend**: Django DRF, bundled with PyInstaller as a sidecar binary.
+- **Desktop Shell**: Tauri v2 (Rust core).
+- **Bundling**: ffmpeg + model files are bundled into the installer.
 
----
+## Project Structure
 
-## 🚀 Features
-
-### Current (V1)
-- Drag & drop audio file upload (MP3, WAV, OGG, FLAC, M4A)
-- Fast genre classification using `dima806/music_genres_classification`
-- Top 5 predictions with confidence scores
-- Clean, modern, responsive UI
-- Model selector UI (ready for V2)
-- Built with Next.js + Django Ninja
-
-### Planned (V2)
-- Custom-trained CNN (Spectrogram-based)
-- Random Forest (Hand-crafted features)
-- Side-by-side model comparison
-- Performance metrics dashboard
-- Feature visualization
-
----
-
-## 🛠️ Tech Stack
-
-### Frontend
-- **Next.js 14** (App Router)
-- TypeScript
-- Tailwind CSS
-- Shadcn/ui (recommended)
-
-### Backend
-- **Django 5**
-- **Django Ninja**
-- Python 3.10+
-
-### Machine Learning
-- Hugging Face Transformers (`dima806/music_genres_classification`)
-- Librosa (audio processing)
-- PyTorch / TensorFlow (for custom models)
-- Scikit-learn (Random Forest)
-
----
-
-## 📁 Project Structure
-
-```bash
-music-genre-classifier/
-├── backend/                  # Django Ninja API
-│   ├── project/
-│   ├── api/
-│   ├── models/
-│   └── requirements.txt
-│
-├── frontend/                 # Next.js Application
+```
+melodii/
+├── backend/
+│   ├── launcher/
+│   │   └── run_backend.py
+│   ├── melodii_backend.spec
+│   ├── ffmpeg/                # bundled ffmpeg binaries
+│   ├── models/                # bundled HF/model cache
+│   └── src/                   # Django project
+├── frontend/
 │   ├── app/
-│   ├── components/
+│   ├── lib/
 │   └── public/
-│
-├── models/                   # Trained model files (.pt, .h5, .joblib)
-├── notebooks/                # Jupyter notebooks for training
-├── data/                     # GTZAN dataset
-└── docs/                     # PRDs and documentation
+├── src-tauri/
+│   ├── src/main.rs
+│   ├── Cargo.toml
+│   ├── build.rs
+│   └── tauri.conf.json
+└── README.MD
 ```
 
----
+## API
 
-## 🛠️ Installation & Setup
+All DRF endpoints remain unchanged. The classifier lives at:
 
-### 1. Clone the Repository
-```bash
-git clone https://github.com/yourusername/music-genre-classifier.git
-cd music-genre-classifier
+```
+POST /api/v1/genre-ai/classify/
 ```
 
-### 2. Backend Setup
+## Local Development
 
-```bash
+### Backend (Django)
+
+```
 cd backend
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate    # Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run migrations
-python manage.py migrate
-
-# Start Django server
-python manage.py runserver
+uv sync
+uv run python manage.py migrate
+uv run python manage.py runserver
 ```
 
-### 3. Frontend Setup
+### Frontend (Next.js)
 
-```bash
+```
 cd frontend
-
-# Install dependencies
 npm install
-
-# Start Next.js development server
 npm run dev
 ```
 
----
+## Desktop Setup (Tauri v2)
 
-## 🌐 How to Use
+1. Install Rust + Tauri prerequisites.
+2. From the repo root, run:
 
-1. Open [http://localhost:3000](http://localhost:3000)
-2. Select a model (only Hugging Face model works in V1)
-3. Upload an audio file (max 30MB recommended)
-4. Get instant genre prediction with confidence scores
+```
+cargo install tauri-cli@2
+```
 
----
+3. Build frontend assets:
 
-## 📡 API Endpoints
+```
+npm --prefix frontend install
+npm --prefix frontend run build
+```
 
-| Method | Endpoint              | Description                    |
-|--------|-----------------------|--------------------------------|
-| POST   | `/api/classify/`      | Classify uploaded audio file   |
+4. Build the backend sidecar:
 
-**Request Body**: `multipart/form-data` with `file` and optional `model_name`
+```
+cd backend
+uv run pyinstaller melodii_backend.spec
+```
 
----
+5. Copy the sidecar into Tauri bin:
 
-## 📊 Models Status
+```
+mkdir -p ../src-tauri/bin
+cp dist/melodii-backend* ../src-tauri/bin/
+```
 
-| Model                              | Status      | Type              | Notes |
-|------------------------------------|-------------|-------------------|-------|
-| dima806/music_genres_classification | ✅ Active   | Deep Learning     | V1 Baseline |
-| Custom CNN                         | 🔴 Planned  | Deep Learning     | V2 |
-| Random Forest                      | 🔴 Planned  | Data Mining       | V2 |
+6. Run the desktop app in dev mode:
 
----
+```
+cd ../src-tauri
+tauri dev
+```
+
+## Production Build
+
+```
+cd frontend
+npm run build
+cd ../backend
+uv run pyinstaller melodii_backend.spec
+cd ../src-tauri
+tauri build
+```
+
+The resulting installers are placed under `src-tauri/target/release/bundle/`.
+
+## ffmpeg and Model Bundling
+
+- Place platform-specific ffmpeg binaries in [backend/ffmpeg](backend/ffmpeg).
+- Place Hugging Face model cache files in [backend/models](backend/models).
+- Both folders are bundled into the app via `src-tauri/tauri.conf.json`.
+
+## Notes
+
+- Windows is the primary target, but the bundle config supports macOS/Linux as well.
+- The backend sidecar automatically selects an available port and prints it for Tauri.
+- On app close, the sidecar process is terminated gracefully.

@@ -42,6 +42,9 @@ run: runserver
 
 r: run
 
+test-model:
+	uv run python tests/classify_audio.py
+
 shell:
 	uv run python manage.py shell
 
