@@ -1,6 +1,5 @@
 import { apiClient } from "../ApiClient";
 import { BackendRoutes } from "../BackendRoutes";
-import type { OrganizationInvitation } from "@/lib/api/types/organizations.types";
 import type {
   GetOnboardingTokenResponse,
   EmailVerificationResponse,
@@ -165,38 +164,6 @@ export class OnboardingService {
     return res.data;
   }
 
-  /** Create an organization during onboarding */
-  static async createOrganization(onboardingToken: string, organizationName: string): Promise<SetBasicInfoResponse> {
-    const res = await apiClient.post<SetBasicInfoResponse>(
-      // backend returns updated onboarding_status
-      BackendRoutes.onboardingCreateOrganization,
-      { onboarding_token: onboardingToken, organization_name: organizationName },
-      { requiresAuth: false }
-    );
-    return res.data;
-  }
-
-  /** Fetch pending organization invites for onboarding */
-  static async fetchOrganizationInvites(
-    onboardingToken: string
-  ): Promise<{ organization_invites: OrganizationInvitation[] }> {
-    const res = await apiClient.post<{ organization_invites: OrganizationInvitation[] }>(
-      BackendRoutes.onboardingFetchOrganizationInvites,
-      { onboarding_token: onboardingToken },
-      { requiresAuth: false }
-    );
-    return res.data;
-  }
-
-  /** Accept or reject an organization invite during onboarding */
-  static async acceptOrRejectOrganizationInvite(onboardingToken: string, organizationInviteId: string, action: "accept" | "decline") {
-    const res = await apiClient.post<any>(
-      BackendRoutes.onboardingAcceptOrRejectOrganizationInvite,
-      { onboarding_token: onboardingToken, organization_invite_id: organizationInviteId, action },
-      { requiresAuth: false }
-    );
-    return res.data;
-  }
 }
 
 export default OnboardingService;

@@ -1,12 +1,54 @@
-.PHONY: runserver frontend backend
+.PHONY: runserver frontend backend \
+	desktop-installers desktop-build desktop-frontend desktop-backend \
+	desktop-copy-sidecar desktop-tauri-build desktop-clean
+
+FRONTEND_DIR=./frontend
+BACKEND_DIR=./backend
+TAURI_DIR=./src-tauri
+TAURI_BIN_DIR=$(TAURI_DIR)/bin
+BACKEND_DIST=$(BACKEND_DIR)/dist
+SIDECAR_NAME=melodii-backend
 
 runserver: frontend backend
 
 frontend:
-	$(MAKE) -C ./frontend runserver
+	$(MAKE) -C $(FRONTEND_DIR) runserver
 
 backend:
-	$(MAKE) -C ./backend runserver
+	$(MAKE) -C $(BACKEND_DIR) runserver
+
+
+# Desktop build pipeline
+installers: desktop-build
+	@echo "Installers are in $(TAURI_DIR)/target/release/bundle/"
+
+desktop-build: desktop-frontend desktop-backend desktop-copy-sidecar desktop-tauri-build
+
+desktop-frontend:
+	cd $(FRONTEND_DIR) && npm install
+	cd $(FRONTEND_DIR) && npm run build
+
+desktop-backend:
+	cd $(BACKEND_DIR) && uv sync
+	cd $(BACKEND_DIR) && uv run pyinstaller melodii_backend.spec
+
+desktop-copy-sidecar:
+	mkdir -p $(TAURI_BIN_DIR)
+	@if [ -f $(BACKEND_DIST)/$(SIDECAR_NAME).exe ]; then \
+		cp $(BACKEND_DIST)/$(SIDECAR_NAME).exe $(TAURI_BIN_DIR)/; \
+	else \
+		cp $(BACKEND_DIST)/$(SIDECAR_NAME) $(TAURI_BIN_DIR)/; \
+	fi
+
+desktop-tauri-build:
+	cd $(TAURI_DIR) && tauri build
+
+
+# cargo install tauri-cli --version ^2
+
+
+desktop-clean:
+	rm -rf $(TAURI_BIN_DIR)
 
 diff-staged:
 	git diff --cached > ./a.diff

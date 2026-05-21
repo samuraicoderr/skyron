@@ -1,11 +1,14 @@
 import os
 import sys
+from pathlib import Path
 
 import django
 from rest_framework.exceptions import ValidationError
 
 
 def _setup_django() -> None:
+    backend_root = Path(__file__).resolve().parents[1]
+    sys.path.insert(0, str(backend_root))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "src.config.settings")
     django.setup()
 
