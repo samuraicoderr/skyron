@@ -1,9 +1,14 @@
 from asyncio.log import logger
 import os
 from sys import monitoring
-import sentry_sdk
-
-from sentry_sdk.integrations.django import DjangoIntegration
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+    _SENTRY_AVAILABLE = True
+except Exception:
+    sentry_sdk = None
+    DjangoIntegration = None
+    _SENTRY_AVAILABLE = False
 from os.path import join
 from ._utils import env
 from ._errors import SettingsError
@@ -239,7 +244,7 @@ ASGI_APPLICATION = "src.asgi.application"
 
 SENTRY_DSN = os.getenv("SENTRY_DSN")
 
-if SENTRY_DSN:
+if SENTRY_DSN and _SENTRY_AVAILABLE:
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         integrations=[DjangoIntegration()],
@@ -247,6 +252,8 @@ if SENTRY_DSN:
         send_default_pii=True,
         traces_sample_rate=0.2 if not DEBUG else 1.0,
     )
+elif SENTRY_DSN and not _SENTRY_AVAILABLE:
+    print("WARNING: SENTRY_DSN is set but sentry_sdk is not available.")
 
 
 # ============================================================

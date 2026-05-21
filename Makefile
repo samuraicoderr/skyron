@@ -32,16 +32,21 @@ desktop-backend:
 	cd $(BACKEND_DIR) && uv sync
 	cd $(BACKEND_DIR) && uv run pyinstaller melodii_backend.spec
 
+tauri: desktop-copy-sidecar desktop-tauri-build
+
 desktop-copy-sidecar:
-	mkdir -p $(TAURI_BIN_DIR)
-	@if [ -f $(BACKEND_DIST)/$(SIDECAR_NAME).exe ]; then \
-		cp $(BACKEND_DIST)/$(SIDECAR_NAME).exe $(TAURI_BIN_DIR)/; \
-	else \
-		cp $(BACKEND_DIST)/$(SIDECAR_NAME) $(TAURI_BIN_DIR)/; \
-	fi
+# 	mkdir -p $(TAURI_BIN_DIR)
+# 	@if [ -f $(BACKEND_DIST)/$(SIDECAR_NAME).exe ]; then \
+# 		cp $(BACKEND_DIST)/$(SIDECAR_NAME).exe $(TAURI_BIN_DIR)/; \
+# 	else \
+# 		cp $(BACKEND_DIST)/$(SIDECAR_NAME) $(TAURI_BIN_DIR)/; \
+# 	fi
+	powershell -Command "New-Item -ItemType Directory -Force -Path $(TAURI_BIN_DIR)"
+	powershell -Command "if (Test-Path '$(BACKEND_DIST)/$(SIDECAR_NAME).exe') { Copy-Item '$(BACKEND_DIST)/$(SIDECAR_NAME).exe' '$(TAURI_BIN_DIR)/' -Force } else { Copy-Item '$(BACKEND_DIST)/$(SIDECAR_NAME)' '$(TAURI_BIN_DIR)/' -Force }"
+
 
 desktop-tauri-build:
-	cd $(TAURI_DIR) && tauri build
+	cd $(TAURI_DIR) && cargo tauri build
 
 
 # cargo install tauri-cli --version ^2
