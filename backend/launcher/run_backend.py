@@ -22,6 +22,7 @@ def _prepend_path(directory: Path) -> None:
 def _configure_runtime_env(resource_dir: Path | None) -> None:
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "src.config.settings")
     os.environ.setdefault("DJANGO_DEBUG", "true")
+    os.environ.setdefault("USE_DEFAULT_BACKEND", "True")
 
     if not resource_dir:
         return
