@@ -7,6 +7,8 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from celery import current_app
+from django.conf import settings
 
 from src.common.serializers import EmptySerializer
 from src.lib.django.views_mixin import ViewSetHelperMixin
@@ -14,6 +16,22 @@ from src.genre_ai.services import GenreAIService
 from src.genre_ai.tasks import classify_genre_task
 
 logger = logging.getLogger(__name__)
+
+
+def _ensure_celery_ready() -> tuple[bool, str]:
+    broker_url = str(getattr(settings, "BROKER_URL", ""))
+    if broker_url.startswith("memory://"):
+        return False, "Celery broker is set to memory://. Start Redis and set REDIS_URL."
+
+    try:
+        responses = current_app.control.ping(timeout=5.0)
+    except Exception:
+        return False, "Celery worker is unavailable. Start a Celery worker process."
+
+    if not responses:
+        return False, "No Celery workers responded. Start a Celery worker process."
+
+    return True, ""
 
 
 class GenreAIViewset(ViewSetHelperMixin, viewsets.GenericViewSet):
@@ -35,6 +53,13 @@ class GenreAIViewset(ViewSetHelperMixin, viewsets.GenericViewSet):
             raise ValidationError("File is required")
 
         try:
+            celery_ready, celery_message = _ensure_celery_ready()
+            if not celery_ready:
+                return Response(
+                    {"detail": celery_message},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
+
             model_name = GenreAIService.resolve_model_name(request.data.get("model_name"))
             GenreAIService.validate_file(uploaded_file.name, uploaded_file.size)
 

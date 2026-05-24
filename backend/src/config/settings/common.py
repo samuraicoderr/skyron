@@ -277,9 +277,9 @@ GENRE_AI_DEFAULT_MODEL = os.getenv(
 GENRE_AI_HF_TOKEN = os.getenv("GENRE_AI_HF_TOKEN")
 GENRE_AI_MODEL_CACHE_DIR = os.getenv(
     "GENRE_AI_MODEL_CACHE_DIR",
-    os.path.join(os.path.dirname(BASE_DIR), "models"),
+    os.path.join(os.path.dirname(os.path.dirname(BASE_DIR)), "models"),
 )
-GENRE_AI_CLIP_SECONDS = int(os.getenv("GENRE_AI_CLIP_SECONDS", "120"))
+GENRE_AI_CLIP_SECONDS = int(os.getenv("GENRE_AI_CLIP_SECONDS", "45"))  # works well with 30-45 seconds
 GENRE_AI_MAX_FILE_SIZE_MB = int(os.getenv("GENRE_AI_MAX_FILE_SIZE_MB", "30"))
 GENRE_AI_ALLOWED_EXTENSIONS = [
     ".mp3",
@@ -409,3 +409,6 @@ SUMMERNOTE_CONFIG = {
 }
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
+
+HF_TOKEN = os.getenv("HF_TOKEN", None)  # HUGGINFACE TOKEN BRO

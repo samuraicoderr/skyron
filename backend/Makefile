@@ -42,7 +42,7 @@ run: runserver
 
 r: run
 
-test-model:
+use-model:
 	uv run python tests/classify_audio.py
 
 shell:
@@ -166,6 +166,8 @@ websocket:
 	websocat ws://127.0.0.1:7000/api/v1/ws/
 
 
+celery:
+	uv run celery -A src.config worker -l info -P solo
 
 # ----------------------------------------------------------------------------------
 

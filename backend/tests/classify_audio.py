@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 
 import django
+from django.conf import settings
 from rest_framework.exceptions import ValidationError
 
 
@@ -11,6 +12,17 @@ def _setup_django() -> None:
     sys.path.insert(0, str(backend_root))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "src.config.settings")
     django.setup()
+
+    hf_token = getattr(settings, "HF_TOKEN", None)
+    if hf_token:
+        try:
+            from huggingface_hub import login
+
+            login(token=hf_token)
+        except Exception as e:
+            print(f"WARNING: Failed to authenticate with Hugging Face: {e}")
+    else:
+        print("WARNING: HF_TOKEN not set. Using unauthenticated requests.")
 
 
 def _prompt_file_path() -> str:

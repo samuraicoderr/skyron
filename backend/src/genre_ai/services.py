@@ -62,14 +62,29 @@ class GenreAIService:
         hf_token = GenreAIService.get_settings()["hf_token"]
         Path(cache_dir).mkdir(parents=True, exist_ok=True)
 
-        logger.info(
-            "Loading genre classification model: %s (cache=%s)",
-            model_name,
-            cache_dir,
+        # Check if model files exist locally (config.json and model weights)
+        config_path = os.path.join(cache_dir, "config.json")
+        model_files_exist = os.path.isfile(config_path) and (
+            os.path.isfile(os.path.join(cache_dir, "pytorch_model.bin"))
+            or os.path.isfile(os.path.join(cache_dir, "model.safetensors"))
         )
+
+        if model_files_exist:
+            logger.info(
+                "Loading genre classification model from local cache: %s",
+                cache_dir,
+            )
+            model_to_load = cache_dir
+        else:
+            logger.info(
+                "Model not found locally. Loading from HuggingFace: %s",
+                model_name,
+            )
+            model_to_load = model_name
+
         return pipeline(
             "audio-classification",
-            model=model_name,
+            model=model_to_load,
             token=hf_token,
             cache_dir=cache_dir,
         )

@@ -23,7 +23,7 @@ except Exception as exc:
 
 
 BROKER_URL = REDIS_URL if _REDIS_AVAILABLE else "memory://"
-CELERY_RESULT_BACKEND = REDIS_URL if _REDIS_AVAILABLE else "cache+memory://"
+CELERY_RESULT_BACKEND = REDIS_URL if _REDIS_AVAILABLE else "django-db"
 
 CHANNEL_LAYERS = (
 	{
@@ -36,25 +36,6 @@ CHANNEL_LAYERS = (
 	else {
 		"default": {
 			"BACKEND": "channels.layers.InMemoryChannelLayer",
-		}
-	}
-)
-
-CACHES = (
-	{
-		"default": {
-			"BACKEND": "django_redis.cache.RedisCache",
-			"LOCATION": REDIS_URL + "/2",
-			"OPTIONS": {
-				"CLIENT_CLASS": "django_redis.client.DefaultClient",
-			},
-		}
-	}
-	if _REDIS_AVAILABLE
-	else {
-		"default": {
-			"BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-			"LOCATION": "melodii-local-cache",
 		}
 	}
 )

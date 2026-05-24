@@ -115,7 +115,7 @@ media/*
 !media/.gitkeep
 
 # Hugging Face / Torch model cache
-models/
+# models/
 
 
 # Just ignore
