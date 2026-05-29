@@ -4,11 +4,12 @@ from ._utils import load_env_vars
 
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+ALWAYS_CREATE_ENV = os.getenv("ALWAYS_CREATE_ENV", "False").lower() == "true"
 
 ENV_PATH = os.path.join(ROOT_DIR, ".env")
 load_env_vars(
     ENV_PATH,
-    always_create_env=False,
+    always_create_env=ALWAYS_CREATE_ENV,
 )
 
 
